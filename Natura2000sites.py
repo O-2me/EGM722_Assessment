@@ -1,5 +1,6 @@
 # import required modules
 import os
+import pandas as pd
 import geopandas as gpd
 import matplotlib.pyplot as plt
 from cartopy.feature import ShapelyFeature
@@ -56,15 +57,26 @@ else:
 
 #------------------------------User input coordinates and search function-------------------------------------------
 
-xin = input("Enter X coordinates of search point:")
+xin = input("Enter ITM X coordinate of search point:")
 xin = float(xin) #transform input str to float for plotting
+#if xin == float:
+#     pass
+# else:
+#     print ('Coordinates must be entered in a number format such as 123456.78')
 
-yin = input('Entey Y coodinate of search point;')
+yin = input('Enter ITM Y coordinate of search point;')
 yin = float(yin) #transform input str to float for plotting
+# if yin == float:
+#      pass
+#else:
+#     print ('Coordinates must be entered in a number format such as 123456.78 ')
 
-userinput = (xin, yin)
+userinput = Point(xin, yin)
+userbuffer = userinput.buffer(15000) # Buffer of 15 km around the search point to select Natura 2000 Sites.
 
-
+#-------------------------------Selecting intersecting Natura 2000 sites with user buffer---------------------------#
+#print(userbuffer.intersects(sac))
+#print(userbuffer.intersects(spa))
 #_______________________________Creating map________________________________________________________________________
 # create figure of size 10x10
 myFig = plt.figure(figsize=(10, 10))
@@ -77,7 +89,7 @@ myCRS = ccrs.UTM(29)  # Irish Transverse Mercator (ITM) is used in RoI.
 ax = plt.axes(projection=myCRS)
 
 # add the outline of RoI using cartopy's ShapelyFeature
-outline_feature = ShapelyFeature(outline['geometry'], myCRS, edgecolor='k', facecolor='w')
+outline_feature = ShapelyFeature(outline['geometry'], myCRS, edgecolor='grey', facecolor='w') #change to grey
 ax.add_feature(outline_feature)
 
 # using the boundary of the shapefile features, zoom the map to our area of interest
@@ -105,14 +117,22 @@ ax.add_feature(spa_feat)  # add the feature to the map
 
 userpoint_handle = ax.plot(xin, yin, 'o', color='r', ms=6,)
 
+userbuffer_feat = ShapelyFeature(userbuffer,  # first argument is the geometry
+                            myCRS,          # second argument is the CRS
+                            edgecolor='k',  # set the edgecolor to be black
+                            facecolor='w',  # set the facecolor to be white
+                            linewidth=0.5,    # set the outline width to be 1 pt
+                            alpha= 0.5)
+
 # Symbologies for handles in legend
 sac_handle = generate_handles(['SAC'], ['g'])
 spa_handle = generate_handles(['SPA'], ['b'])
+userbuffer_handle = generate_handles(['Search Area'], ['w'])
 
 # ax.legend() takes list of handles and list of labels corresponding to the features of interest
 # and adds them to  the legend
-handles = sac_handle + spa_handle + userpoint_handle
-labels = ['SAC', 'SPA', 'Search Point']
+handles = sac_handle + spa_handle + userpoint_handle + userbuffer_handle
+labels = ['SAC', 'SPA', 'Search Point', 'Seach Area']
 leg = ax.legend(handles, labels, title='Legend', title_fontsize=12,
                 fontsize=10, loc='upper left', frameon=True, framealpha=1)
 
