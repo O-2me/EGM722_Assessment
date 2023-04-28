@@ -5,35 +5,9 @@ import geopandas as gpd
 import matplotlib.pyplot as plt
 from cartopy.feature import ShapelyFeature
 import cartopy.crs as ccrs
-from shapely.geometry import Point, LineString
+from shapely.geometry import Point, Polygon, LineString
 import matplotlib.patches as mpatches
 import matplotlib.lines as mlines
-
-# Function to generate matplotlib handles for each feature of interest.
-# This is used to create a legend of the input map features.
-def generate_handles(labels, colors, edge='k', alpha=1):
-    lc = len(colors)  # get the length of the color list
-    handles = []
-    for i in range(len(labels)):
-        handles.append(mpatches.Rectangle((0, 0), 1, 1, facecolor=colors[i % lc], edgecolor=edge, alpha=alpha))
-    return handles
-
-#Scalebar may need to be modified once scalled to 15km
-# create a scale bar of length 20 km in the upper right corner of the map
-# adapted this question: https://stackoverflow.com/q/32333870
-# answered by SO user Siyh: https://stackoverflow.com/a/35705477
-def scale_bar(ax, location=(0.92, 0.05)):
-    x0, x1, y0, y1 = ax.get_extent()
-    sbx = x0 + (x1 - x0) * location[0]
-    sby = y0 + (y1 - y0) * location[1]
-
-    ax.plot([sbx, sbx - 20000], [sby, sby], color='k', linewidth=9, transform=ax.projection)
-    ax.plot([sbx, sbx - 10000], [sby, sby], color='k', linewidth=6, transform=ax.projection)
-    ax.plot([sbx-10000, sbx - 20000], [sby, sby], color='w', linewidth=6, transform=ax.projection)
-
-    ax.text(sbx, sby-1000, '20 km', transform=ax.projection, fontsize=8)
-    ax.text(sbx-10000, sby-1000, '10 km', transform=ax.projection, fontsize=8)
-    ax.text(sbx-20500, sby-1000, '0 km', transform=ax.projection, fontsize=8)
 
 # ---------------------Import external shapefiles as GeoPandas Geodataframes----------------------------------------
 outline = gpd.read_file(os.path.abspath('data_files/Counties___Ungen_2019.shp'))
@@ -83,18 +57,41 @@ yin = 621905.056 # commented out for testing float(input())
     #print ('Coordinates must be entered in a number format such as 123456.78')
 userinput = Point(xin, yin)
 
-userbuffer = userinput.buffer(15000, resolution=50) # Buffer of 15 km around the search point to select Natura 2000 Sites.
-#userbuffer = userbuffer.to_crs(epsg=2157)
+print ('Please enter the search distance (m)')
+ZoI = float(input())
+userbuffer = userinput.buffer(ZoI, resolution=50) # Buffer of 15 km around the search point to select Natura 2000 Sites.
 
-#-------------------------------Selecting intersecting Natura 2000 sites with user buffer---------------------------#
-#print(userbuffer.intersects(sac))
-#print(userbuffer.intersects(spa))
+#-------------------------------------Fuctions to help mapping---------------------------------------------------------
+# Function to generate matplotlib handles for each feature.
+# Used to create a legend of the input map features.
+def generate_handles(labels, colors, edge='k', alpha=1):
+    lc = len(colors)  # get the length of the color list
+    handles = []
+    for i in range(len(labels)):
+        handles.append(mpatches.Rectangle((0, 0), 1, 1, facecolor=colors[i % lc], edgecolor=edge, alpha=alpha))
+    return handles
+
+# create a scale bar of length 20 km in the lower right corner of the map
+# adapted this question: https://stackoverflow.com/q/32333870
+# answered by SO user Siyh: https://stackoverflow.com/a/35705477
+def scale_bar(ax, location=(0.92, 0.05)):
+    x0, x1, y0, y1 = ax.get_extent()
+    sbx = x0 + (x1 - x0) * location[0]
+    sby = y0 + (y1 - y0) * location[1]
+
+    ax.plot([sbx, sbx - 20000], [sby, sby], color='k', linewidth=9, transform=ax.projection)
+    ax.plot([sbx, sbx - 10000], [sby, sby], color='k', linewidth=6, transform=ax.projection)
+    ax.plot([sbx-10000, sbx - 20000], [sby, sby], color='w', linewidth=6, transform=ax.projection)
+
+    ax.text(sbx, sby-1000, '20 km', transform=ax.projection, fontsize=8)
+    ax.text(sbx-10000, sby-1000, '10 km', transform=ax.projection, fontsize=8)
+    ax.text(sbx-20500, sby-1000, '0 km', transform=ax.projection, fontsize=8)
 #_______________________________Creating map________________________________________________________________________
 # create figure of size 10x10
 myFig = plt.figure(figsize=(10, 10))
 
 # create a coordinate reference system.
-myCRS = ccrs.UTM(29)  # Irish Transverse Mercator (ITM) is used in RoI.
+myCRS = ccrs.epsg(2157)  # Irish Transverse Mercator (ITM) is used in RoI.
 # 2157 is the epsg code for ITM so passed to ccrs.epsg()
 
 # create an axis object in the figure, using myCRS where data is plotted.
@@ -163,3 +160,10 @@ scale_bar(ax)
 
 # save the figure as map.png, cropped to the axis (bbox_inches='tight'), and a dpi of 300
 myFig.savefig('map.png', bbox_inches='tight', dpi=300)
+
+#-------------------------------Selecting intersecting Natura 2000 sites with user buffer---------------------------#
+#print(userbuffer_feat.intersecting_geometries(sac_feat))
+#print(userbuffer_feat.intersecting_geometries(spa_feat))
+
+#xlpath = 'C:/MSc_Remote_Sensing_&_GIS/EGM722_Programming_for_GIS_and_RS/git/EGM722_Assessment/sac_within.xlsx' #edit to the desired file location
+#sac.to_excel(xlpath)
