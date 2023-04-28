@@ -45,7 +45,7 @@ spa = gpd.read_file(os.path.abspath('data_files/SPA_ITM_2021_10.shp'))
 #Check EPSG codes of the input data and state if projections are consistent
 if outline.crs == sac.crs == spa.crs:
     print ('All features are projected to projection {}'.format(outline.crs))
-    pass
+
 else:
     print ('Input data will be reprojected as 1 or more features have inconsistent projections')
     epsg_code = int((input('Please enter the EPSG code used to reproject input data: '))) #ITM = 2157
@@ -55,24 +55,36 @@ else:
     print('Outline projection - {}\nSAC projection - {}\nSPA projection - {}'
           .format(outline.crs, sac.crs, spa.crs))
 
-#------------------------------User input coordinates and search function-------------------------------------------
+#------------------------------User input coordinates and search features-------------------------------------------
 
-xin = input("Enter ITM X coordinate of search point:")
-xin = float(xin) #transform input str to float for plotting
-#if xin == float:
-#     pass
-# else:
-#     print ('Coordinates must be entered in a number format such as 123456.78')
+#while True:
+print ("Please enter ITM X coordinate (easting) of search point.\nCoordinates must be entered in a number format such as 123456.78")
+xin = float(input())
+#    if xin != float or int:
+ #       print('Coordinates must be entered in a number format such as 123456.78')
+  #      continue
+   # else:
+    #    break
 
-yin = input('Enter ITM Y coordinate of search point;')
-yin = float(yin) #transform input str to float for plotting
-# if yin == float:
-#      pass
-#else:
-#     print ('Coordinates must be entered in a number format such as 123456.78 ')
+#while True:
+print ("Please enter ITM Y coordinate (northing) of search point.\nCoordinates must be entered in a number format such as 123456.78")
+yin = float(input())
+#    if yin != float or int:
+#        print('Coordinates must be entered in a number format such as 123456.78')
+#        continue
+#    else:
+#        break
+#xin = float(xin) #transform input str to float for plotting
+#while xin != float or int:
+    #print ('Coordinates must be entered in a number format such as 123456.78')
 
+#yin = input('Enter ITM Y coordinate (northing) of search point;')
+#while yin != float or int:
+    #print ('Coordinates must be entered in a number format such as 123456.78')
 userinput = Point(xin, yin)
-userbuffer = userinput.buffer(15000) # Buffer of 15 km around the search point to select Natura 2000 Sites.
+
+userbuffer = userinput.buffer(15000, resolution=50) # Buffer of 15 km around the search point to select Natura 2000 Sites.
+#userbuffer = userbuffer.to_crs(epsg=2157)
 
 #-------------------------------Selecting intersecting Natura 2000 sites with user buffer---------------------------#
 #print(userbuffer.intersects(sac))
@@ -89,11 +101,11 @@ myCRS = ccrs.UTM(29)  # Irish Transverse Mercator (ITM) is used in RoI.
 ax = plt.axes(projection=myCRS)
 
 # add the outline of RoI using cartopy's ShapelyFeature
-outline_feature = ShapelyFeature(outline['geometry'], myCRS, edgecolor='grey', facecolor='w') #change to grey
+outline_feature = ShapelyFeature(outline['geometry'], myCRS, edgecolor='grey', facecolor='w')
 ax.add_feature(outline_feature)
 
 # using the boundary of the shapefile features, zoom the map to our area of interest
-xmin, ymin, xmax, ymax = outline.total_bounds
+xmin, ymin, xmax, ymax = userbuffer.bounds
 # because total_bounds gives output as xmin, ymin, xmax, ymax, but set_extent takes xmin,
 # xmax, ymin, ymax, coordinates are reordered here.
 ax.set_extent([xmin-5000, xmax+5000, ymin-5000, ymax+5000], crs=myCRS)
@@ -117,12 +129,15 @@ ax.add_feature(spa_feat)  # add the feature to the map
 
 userpoint_handle = ax.plot(xin, yin, 'o', color='r', ms=6,)
 
+#userbuffer_handle = ax.plot(userbuffer, color='none', edgecolor = 'k')
+
 userbuffer_feat = ShapelyFeature(userbuffer,  # first argument is the geometry
                             myCRS,          # second argument is the CRS
                             edgecolor='k',  # set the edgecolor to be black
-                            facecolor='w',  # set the facecolor to be white
-                            linewidth=0.5,    # set the outline width to be 1 pt
-                            alpha= 0.5)
+                            facecolor='none',  # set the facecolor to be white
+                            linewidth=1)    # set the outline width to be 1 pt
+
+ax.add_feature(userbuffer_feat)  # add the feature to the map
 
 # Symbologies for handles in legend
 sac_handle = generate_handles(['SAC'], ['g'])
