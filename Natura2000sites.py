@@ -74,18 +74,29 @@ def generate_handles(labels, colors, edge='k', alpha=1):
 # create a scale bar of length 20 km in the lower right corner of the map
 # adapted this question: https://stackoverflow.com/q/32333870
 # answered by SO user Siyh: https://stackoverflow.com/a/35705477
+# code modified further to adjust scalebar size based scale of userbuffer.
 def scale_bar(ax, location=(0.92, 0.05)):
     x0, x1, y0, y1 = ax.get_extent()
     sbx = x0 + (x1 - x0) * location[0]
     sby = y0 + (y1 - y0) * location[1]
 
-    ax.plot([sbx, sbx - 20000], [sby, sby], color='k', linewidth=9, transform=ax.projection)
-    ax.plot([sbx, sbx - 10000], [sby, sby], color='k', linewidth=6, transform=ax.projection)
-    ax.plot([sbx-10000, sbx - 20000], [sby, sby], color='w', linewidth=6, transform=ax.projection)
+    if ZoI >= 10000:
+        ax.plot([sbx, sbx - 20000], [sby, sby], color='k', linewidth=9, transform=ax.projection)
+        ax.plot([sbx, sbx - 10000], [sby, sby], color='k', linewidth=6, transform=ax.projection)
+        ax.plot([sbx- 10000, sbx - 20000], [sby, sby], color='w', linewidth=6, transform=ax.projection)
 
-    ax.text(sbx, sby-1000, '20 km', transform=ax.projection, fontsize=8)
-    ax.text(sbx-10000, sby-1000, '10 km', transform=ax.projection, fontsize=8)
-    ax.text(sbx-20500, sby-1000, '0 km', transform=ax.projection, fontsize=8)
+        ax.text(sbx, sby-1000, '20 km', transform=ax.projection, fontsize=8)
+        ax.text(sbx-10000, sby-1000, '10 km', transform=ax.projection, fontsize=8)
+        ax.text(sbx-20500, sby-1000, '0 km', transform=ax.projection, fontsize=8)
+
+    else:
+        ax.plot([sbx, sbx - 10000], [sby, sby], color='k', linewidth=9, transform=ax.projection)
+        ax.plot([sbx, sbx - 5000], [sby, sby], color='k', linewidth=6, transform=ax.projection)
+        ax.plot([sbx - 5000, sbx - 10000], [sby, sby], color='w', linewidth=6, transform=ax.projection)
+
+        ax.text(sbx, sby - 500, '10 km', transform=ax.projection, fontsize=8)
+        ax.text(sbx - 5000, sby - 1000, '5 km', transform=ax.projection, fontsize=8)
+        ax.text(sbx - 10250, sby - 1000, '0 km', transform=ax.projection, fontsize=8)
 #_______________________________Creating map________________________________________________________________________
 # create figure of size 10x10
 myFig = plt.figure(figsize=(10, 10))
@@ -101,11 +112,13 @@ ax = plt.axes(projection=myCRS)
 outline_feature = ShapelyFeature(outline['geometry'], myCRS, edgecolor='grey', facecolor='w')
 ax.add_feature(outline_feature)
 
-# using the boundary of the shapefile features, zoom the map to our area of interest
+# using the boundary of the userbuffer, zoom the map to our area of interest
 xmin, ymin, xmax, ymax = userbuffer.bounds
-# because total_bounds gives output as xmin, ymin, xmax, ymax, but set_extent takes xmin,
-# xmax, ymin, ymax, coordinates are reordered here.
-ax.set_extent([xmin-5000, xmax+5000, ymin-5000, ymax+5000], crs=myCRS)
+# xmin, xmax, ymin, ymax, coordinates are reordered here and defined depends on userbuffer scale
+if ZoI >= 10000:
+    ax.set_extent([xmin-5000, xmax+5000, ymin-5000, ymax+5000], crs=myCRS)
+else:
+    ax.set_extent([xmin-1000, xmax+1000, ymin-1000, ymax+1000], crs=myCRS)
 
 # Setting the symbologies for the features of interest
 sac_feat = ShapelyFeature(sac['geometry'],  # first argument is the geometry
