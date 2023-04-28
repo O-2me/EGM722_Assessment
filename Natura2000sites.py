@@ -31,9 +31,9 @@ def scale_bar(ax, location=(0.92, 0.05)):
     ax.plot([sbx, sbx - 10000], [sby, sby], color='k', linewidth=6, transform=ax.projection)
     ax.plot([sbx-10000, sbx - 20000], [sby, sby], color='w', linewidth=6, transform=ax.projection)
 
-    ax.text(sbx, sby-10000, '20 km', transform=ax.projection, fontsize=8)
-    ax.text(sbx-12500, sby-10000, '10 km', transform=ax.projection, fontsize=8)
-    ax.text(sbx-24500, sby-10000, '0 km', transform=ax.projection, fontsize=8)
+    ax.text(sbx, sby-1000, '20 km', transform=ax.projection, fontsize=8)
+    ax.text(sbx-10000, sby-1000, '10 km', transform=ax.projection, fontsize=8)
+    ax.text(sbx-20500, sby-1000, '0 km', transform=ax.projection, fontsize=8)
 
 # ---------------------Import external shapefiles as GeoPandas Geodataframes----------------------------------------
 outline = gpd.read_file(os.path.abspath('data_files/Counties___Ungen_2019.shp'))
@@ -59,7 +59,7 @@ else:
 
 #while True:
 print ("Please enter ITM X coordinate (easting) of search point.\nCoordinates must be entered in a number format such as 123456.78")
-xin = float(input())
+xin = 570748.007 #float(input()) commented out for testing
 #    if xin != float or int:
  #       print('Coordinates must be entered in a number format such as 123456.78')
   #      continue
@@ -68,7 +68,7 @@ xin = float(input())
 
 #while True:
 print ("Please enter ITM Y coordinate (northing) of search point.\nCoordinates must be entered in a number format such as 123456.78")
-yin = float(input())
+yin = 621905.056 # commented out for testing float(input())
 #    if yin != float or int:
 #        print('Coordinates must be entered in a number format such as 123456.78')
 #        continue
