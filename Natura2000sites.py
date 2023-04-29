@@ -57,9 +57,9 @@ yin = 621905.056 # commented out for testing float(input())
     #print ('Coordinates must be entered in a number format such as 123456.78')
 userinput = Point(xin, yin)
 
-print ('Please enter the search distance (m)')
+print ('Please enter the search distance (km)')
 ZoI = float(input())
-userbuffer = userinput.buffer(ZoI, resolution=50) # Buffer of 15 km around the search point to select Natura 2000 Sites.
+userbuffer = userinput.buffer((ZoI * 1000), resolution=50) # Buffer around the search point to select Natura 2000 Sites.
 
 #-------------------------------------Fuctions to help mapping---------------------------------------------------------
 # Function to generate matplotlib handles for each feature.
@@ -80,7 +80,7 @@ def scale_bar(ax, location=(0.92, 0.05)):
     sbx = x0 + (x1 - x0) * location[0]
     sby = y0 + (y1 - y0) * location[1]
 
-    if ZoI >= 10000:
+    if ZoI >= 10:
         ax.plot([sbx, sbx - 20000], [sby, sby], color='k', linewidth=9, transform=ax.projection)
         ax.plot([sbx, sbx - 10000], [sby, sby], color='k', linewidth=6, transform=ax.projection)
         ax.plot([sbx- 10000, sbx - 20000], [sby, sby], color='w', linewidth=6, transform=ax.projection)
@@ -89,14 +89,23 @@ def scale_bar(ax, location=(0.92, 0.05)):
         ax.text(sbx-10000, sby-1000, '10 km', transform=ax.projection, fontsize=8)
         ax.text(sbx-20500, sby-1000, '0 km', transform=ax.projection, fontsize=8)
 
-    else:
+    elif ZoI >= 5:
         ax.plot([sbx, sbx - 10000], [sby, sby], color='k', linewidth=9, transform=ax.projection)
         ax.plot([sbx, sbx - 5000], [sby, sby], color='k', linewidth=6, transform=ax.projection)
         ax.plot([sbx - 5000, sbx - 10000], [sby, sby], color='w', linewidth=6, transform=ax.projection)
 
         ax.text(sbx, sby - 500, '10 km', transform=ax.projection, fontsize=8)
-        ax.text(sbx - 5000, sby - 1000, '5 km', transform=ax.projection, fontsize=8)
-        ax.text(sbx - 10250, sby - 1000, '0 km', transform=ax.projection, fontsize=8)
+        ax.text(sbx - 5000, sby - 500, '5 km', transform=ax.projection, fontsize=8)
+        ax.text(sbx - 10250, sby - 500, '0 km', transform=ax.projection, fontsize=8)
+
+    else:
+        ax.plot([sbx, sbx - 5000], [sby, sby], color='k', linewidth=9, transform=ax.projection)
+        ax.plot([sbx, sbx - 2500], [sby, sby], color='k', linewidth=6, transform=ax.projection)
+        ax.plot([sbx - 2500, sbx - 5000], [sby, sby], color='w', linewidth=6, transform=ax.projection)
+
+        ax.text(sbx, sby - 250, '5 km', transform=ax.projection, fontsize=8)
+        ax.text(sbx - 2500, sby - 250, '2.5 km', transform=ax.projection, fontsize=8)
+        ax.text(sbx - 5125, sby - 250, '0 km', transform=ax.projection, fontsize=8)
 #_______________________________Creating map________________________________________________________________________
 # create figure of size 10x10
 myFig = plt.figure(figsize=(10, 10))
@@ -115,10 +124,12 @@ ax.add_feature(outline_feature)
 # using the boundary of the userbuffer, zoom the map to our area of interest
 xmin, ymin, xmax, ymax = userbuffer.bounds
 # xmin, xmax, ymin, ymax, coordinates are reordered here and defined depends on userbuffer scale
-if ZoI >= 10000:
+if ZoI >= 10:
     ax.set_extent([xmin-5000, xmax+5000, ymin-5000, ymax+5000], crs=myCRS)
-else:
+elif ZoI >= 5:
     ax.set_extent([xmin-1000, xmax+1000, ymin-1000, ymax+1000], crs=myCRS)
+else:
+    ax.set_extent([xmin - 500, xmax + 500, ymin - 500, ymax + 500], crs=myCRS)
 
 # Setting the symbologies for the features of interest
 sac_feat = ShapelyFeature(sac['geometry'],  # first argument is the geometry
