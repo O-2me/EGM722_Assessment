@@ -8,7 +8,7 @@ import cartopy.crs as ccrs
 from shapely.geometry import Point, Polygon, LineString
 import matplotlib.patches as mpatches
 import matplotlib.lines as mlines
-
+import openpyxl
 # ---------------------Import external shapefiles as GeoPandas Geodataframes----------------------------------------
 outline = gpd.read_file(os.path.abspath('data_files/Counties___Ungen_2019.shp'))
 sac = gpd.read_file(os.path.abspath('data_files/SAC_ITM_2023_02.shp'))
@@ -172,37 +172,28 @@ labels = ['SAC', 'SPA', 'Search Point', 'Seach Area']
 leg = ax.legend(handles, labels, title='Legend', title_fontsize=12,
                 fontsize=10, loc='upper left', frameon=True, framealpha=1)
 
-# Gridlines - I'll probably remove
-#gridlines = ax.gridlines(draw_labels=True,  # draw  labels for the grid lines
-#                         xlocs=[-9.5, -9, -8.5, -8, -7.5, -7],  # add longitude lines at 0.5 deg intervals
-#                         ylocs=[54, 54.5, 55, 55.5])  # add latitude lines at 0.5 deg intervals
-#gridlines.left_labels = False  # turn off the left-side labels
-#gridlines.bottom_labels = False  # turn off the bottom labels
-
 # add the scale bar to the axis
 scale_bar(ax)
 
-# save the figure as map.png, cropped to the axis (bbox_inches='tight'), and a dpi of 300
-myFig.savefig('map.png', bbox_inches='tight', dpi=300)
+# export figure as map
+myFig.savefig('Natura2000map.png', bbox_inches='tight', dpi=300)
 
 #-------------------------------Selecting Natura 2000 sites with user buffer---------------------------#
 
-userbuffer = gpd.GeoSeries(userbuffer, crs="EPSG:2157") # change userbuffer to GeoSeries to allow for intersection with sac / spa gdfs
+sac_in = sac.loc[sac.intersects(userbuffer)] # new variable containing sacs within userbuffer geometry
+print ('Natura 2000 Sites within Search Area -')
+print ('Number of Special Areas of Conservation: {}' .format(len(sac_in.index)))
+spa_in = spa.loc[spa.intersects(userbuffer)] # new variable containing spas within userbuffer geometry
+print ('Number of Special Protection Areas: {}' .format(len(spa_in.index)))
 
-sacwithin = userbuffer.intersection(sac, align=True) #create variable showing sacs within search area
+#-------------------------------Exporting results table to file---------------------------------------#
 
+#creating file pathways for excel exports
+sac_expath = 'C:/MSc_Remote_Sensing_&_GIS/EGM722_Programming_for_GIS_and_RS/git/EGM722_Assessment/SAC_within.xlsx'
+spa_expath = 'C:/MSc_Remote_Sensing_&_GIS/EGM722_Programming_for_GIS_and_RS/git/EGM722_Assessment/SPA_within.xlsx'
 
+#export results to excel
+sac_in.to_excel(sac_expath)
+spa_in.to_excel(spa_expath)
 
-
-
-
-
-
-
-#append / join sacwithin series column to sac gdf
-#userbuffer.intersection(sac)
-#print(userbuffer_feat.intersecting_geometries(sac_feat))
-#print(userbuffer_feat.intersecting_geometries(spa_feat))
-
-#xlpath = 'C:/MSc_Remote_Sensing_&_GIS/EGM722_Programming_for_GIS_and_RS/git/EGM722_Assessment/sac_within.xlsx' #edit to the desired file location
-#sac.to_excel(xlpath)
+print('Results and mapping exported to folder')
