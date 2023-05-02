@@ -33,7 +33,7 @@ else:
 
 #while True:
 print ("Please enter ITM X coordinate (easting) of search point.\nCoordinates must be entered in a number format such as 123456.78")
-xin = 570748.007 #float(input()) commented out for testing
+xin = 533835.919 #float(input()) commented out for testing
 #    if xin != float or int:
  #       print('Coordinates must be entered in a number format such as 123456.78')
   #      continue
@@ -42,7 +42,7 @@ xin = 570748.007 #float(input()) commented out for testing
 
 #while True:
 print ("Please enter ITM Y coordinate (northing) of search point.\nCoordinates must be entered in a number format such as 123456.78")
-yin = 621905.056 # commented out for testing float(input())
+yin = 680764.228 #float(input()) commented out for testing float(input())
 #    if yin != float or int:
 #        print('Coordinates must be entered in a number format such as 123456.78')
 #        continue
@@ -58,7 +58,7 @@ yin = 621905.056 # commented out for testing float(input())
 userinput = Point(xin, yin)
 
 print ('Please enter the search distance (km)')
-ZoI = float(input())
+ZoI = 15 #commented out for testing float(input())
 userbuffer = userinput.buffer((ZoI * 1000), resolution=50) # Buffer around the search point to select Natura 2000 Sites.
 
 #-------------------------------------Fuctions to help mapping---------------------------------------------------------
@@ -185,7 +185,22 @@ scale_bar(ax)
 # save the figure as map.png, cropped to the axis (bbox_inches='tight'), and a dpi of 300
 myFig.savefig('map.png', bbox_inches='tight', dpi=300)
 
-#-------------------------------Selecting intersecting Natura 2000 sites with user buffer---------------------------#
+#-------------------------------Selecting Natura 2000 sites with user buffer---------------------------#
+
+userbuffer = gpd.GeoSeries(userbuffer, crs="EPSG:2157") # change userbuffer to GeoSeries to allow for intersection with sac / spa gdfs
+
+sacwithin = userbuffer.intersection(sac, align=True) #create variable showing sacs within search area
+
+
+
+
+
+
+
+
+
+#append / join sacwithin series column to sac gdf
+#userbuffer.intersection(sac)
 #print(userbuffer_feat.intersecting_geometries(sac_feat))
 #print(userbuffer_feat.intersecting_geometries(spa_feat))
 
