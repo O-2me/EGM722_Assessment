@@ -9,14 +9,17 @@ from shapely.geometry import Point, Polygon, LineString
 import matplotlib.patches as mpatches
 import matplotlib.lines as mlines
 import openpyxl
-# ---------------------Import external shapefiles as GeoPandas Geodataframes----------------------------------------
-outline = gpd.read_file(os.path.abspath('data_files/Counties___Ungen_2019.shp'))
-sac = gpd.read_file(os.path.abspath('data_files/SAC_ITM_2023_02.shp'))
-spa = gpd.read_file(os.path.abspath('data_files/SPA_ITM_2021_10.shp'))
-#---------------------------------Check CRS Consistency--------------------------------------------------------------
+
+# ---------------------Import external shapefiles as GeoPandas Geodataframes-------------------------------------------#
+outline = gpd.read_file(os.path.abspath('data_files/Counties___Ungen_2019.shp')) #County Outlines
+sac = gpd.read_file(os.path.abspath('data_files/SAC_ITM_2023_02.shp')) #Special Areas of Conservation
+spa = gpd.read_file(os.path.abspath('data_files/SPA_ITM_2021_10.shp')) #Special Protection Areas
+
+#---------------------------------Check Input CRS Consistency----------------------------------------------------------#
 #sac = sac.to_crs(epsg=32639) #debug
 
-#Check EPSG codes of the input data and state if projections are consistent
+#Check EPSG codes of the input data and state if projections are consistent.
+#If inconsistent carryout conversion to user defined EPSG code
 if outline.crs == sac.crs == spa.crs:
     print ('All features are projected to projection {}'.format(outline.crs))
 
@@ -29,11 +32,10 @@ else:
     print('Outline projection - {}\nSAC projection - {}\nSPA projection - {}'
           .format(outline.crs, sac.crs, spa.crs))
 
-#------------------------------User input coordinates and search features-------------------------------------------
-
-#while True:
-print ("Please enter ITM X coordinate (easting) of search point.\nCoordinates must be entered in a number format such as 123456.78")
-xin = 533835.919 #float(input()) commented out for testing
+#------------------------------User input coordinates and search features----------------------------------------------#
+print ("Please enter ITM X coordinate (easting) of search point."
+       "\nCoordinates must be entered in a number format such as 123456.78")
+xin = float(input()) #commented out for testing
 #    if xin != float or int:
  #       print('Coordinates must be entered in a number format such as 123456.78')
   #      continue
@@ -41,8 +43,9 @@ xin = 533835.919 #float(input()) commented out for testing
     #    break
 
 #while True:
-print ("Please enter ITM Y coordinate (northing) of search point.\nCoordinates must be entered in a number format such as 123456.78")
-yin = 680764.228 #float(input()) commented out for testing float(input())
+print ("Please enter ITM Y coordinate (northing) of search point."
+       "\nCoordinates must be entered in a number format such as 123456.78")
+yin = float(input()) #commented out for testing float(input())
 #    if yin != float or int:
 #        print('Coordinates must be entered in a number format such as 123456.78')
 #        continue
@@ -58,12 +61,11 @@ yin = 680764.228 #float(input()) commented out for testing float(input())
 userinput = Point(xin, yin)
 
 print ('Please enter the search distance (km)')
-ZoI = 15 #commented out for testing float(input())
-userbuffer = userinput.buffer((ZoI * 1000), resolution=50) # Buffer around the search point to select Natura 2000 Sites.
+ZoI = float(input()) # commented out for testing #ZoI is 'Zone of Influence' ie area within whcih effects to Natura 2000 site are possible.
+userbuffer = userinput.buffer((ZoI * 1000), resolution=50) # Buffer around the search point, based on ZoI. Will form Search Area
 
-#-------------------------------------Fuctions to help mapping---------------------------------------------------------
-# Function to generate matplotlib handles for each feature.
-# Used to create a legend of the input map features.
+#-------------------------------------Fuctions to help mapping output--------------------------------------------------#
+# Function to generate matplotlib handles to create legend tab for each input feature.
 def generate_handles(labels, colors, edge='k', alpha=1):
     lc = len(colors)  # get the length of the color list
     handles = []
@@ -106,8 +108,8 @@ def scale_bar(ax, location=(0.92, 0.05)):
         ax.text(sbx, sby - 250, '5 km', transform=ax.projection, fontsize=8)
         ax.text(sbx - 2500, sby - 250, '2.5 km', transform=ax.projection, fontsize=8)
         ax.text(sbx - 5125, sby - 250, '0 km', transform=ax.projection, fontsize=8)
-#_______________________________Creating map________________________________________________________________________
-# create figure of size 10x10
+
+#-----------------------------------------Creating map output----------------------------------------------------------#
 myFig = plt.figure(figsize=(10, 10))
 
 # create a coordinate reference system.
@@ -121,9 +123,9 @@ ax = plt.axes(projection=myCRS)
 outline_feature = ShapelyFeature(outline['geometry'], myCRS, edgecolor='grey', facecolor='w')
 ax.add_feature(outline_feature)
 
-# using the boundary of the userbuffer, zoom the map to our area of interest
+# using the boundary of the userbuffer, zoom the map to area of interest
 xmin, ymin, xmax, ymax = userbuffer.bounds
-# xmin, xmax, ymin, ymax, coordinates are reordered here and defined depends on userbuffer scale
+# xmin, xmax, ymin, ymax, coordinates are reordered here and defined. Extents depends on ZoI size
 if ZoI >= 10:
     ax.set_extent([xmin-5000, xmax+5000, ymin-5000, ymax+5000], crs=myCRS)
 elif ZoI >= 5:
@@ -131,33 +133,24 @@ elif ZoI >= 5:
 else:
     ax.set_extent([xmin - 500, xmax + 500, ymin - 500, ymax + 500], crs=myCRS)
 
-# Setting the symbologies for the features of interest
-sac_feat = ShapelyFeature(sac['geometry'],  # first argument is the geometry
-                            myCRS,          # second argument is the CRS
-                            edgecolor='g',  # set the edgecolor to be green
-                            facecolor='g',  # set the facecolor to be green
-                            linewidth=1,    # set the outline width to be 1 pt
-                            alpha= 0.5)    # Transparency set to 50%
+# Set the symbologies for each feature
+#Special Areas of Conservation
+sac_feat = ShapelyFeature(sac['geometry'], myCRS, edgecolor='g', facecolor='g', linewidth=1, alpha= 0.5)
+# first argument is the geometry, second argument is the CRS, edgecolor is the boundary of the feature (green),
+# facecolor is the color of the feature (green), linewidth is the boundary size,
+# alpha is the level of transparency (50%).
+# Colorcode based on https://matplotlib.org/2.1.1/gallery/color/named_colors.html
 ax.add_feature(sac_feat)  # add the  feature to the map
 
-spa_feat = ShapelyFeature(spa['geometry'],  # first argument is the geometry
-                            myCRS,          # second argument is the CRS
-                            edgecolor='b',  # set the edgecolor to be blue
-                            facecolor='b',  # set the facecolor to be blue
-                            linewidth=1,    # set the outline width to be 1 pt
-                            alpha= 0.5)    # Transparency set to 50%
+#Special Protection Areas
+spa_feat = ShapelyFeature(spa['geometry'], myCRS, edgecolor='b', facecolor='b', linewidth=1, alpha= 0.5)
 ax.add_feature(spa_feat)  # add the feature to the map
 
+#Search point
 userpoint_handle = ax.plot(xin, yin, 'o', color='r', ms=6,)
 
-#userbuffer_handle = ax.plot(userbuffer, color='none', edgecolor = 'k')
-
-userbuffer_feat = ShapelyFeature(userbuffer,  # first argument is the geometry
-                            myCRS,          # second argument is the CRS
-                            edgecolor='k',  # set the edgecolor to be black
-                            facecolor='none',  # set the facecolor to be white
-                            linewidth=1)    # set the outline width to be 1 pt
-
+#Search Area
+userbuffer_feat = ShapelyFeature(userbuffer, myCRS, edgecolor='k', facecolor='none', linewidth=1)
 ax.add_feature(userbuffer_feat)  # add the feature to the map
 
 # Symbologies for handles in legend
@@ -165,12 +158,12 @@ sac_handle = generate_handles(['SAC'], ['g'])
 spa_handle = generate_handles(['SPA'], ['b'])
 userbuffer_handle = generate_handles(['Search Area'], ['w'])
 
-# ax.legend() takes list of handles and list of labels corresponding to the features of interest
-# and adds them to  the legend
+# ax.legend() takes list of handles and list of labels corresponding to the features of interest and adds them to
+# the legend
 handles = sac_handle + spa_handle + userpoint_handle + userbuffer_handle
 labels = ['SAC', 'SPA', 'Search Point', 'Seach Area']
-leg = ax.legend(handles, labels, title='Legend', title_fontsize=12,
-                fontsize=10, loc='upper left', frameon=True, framealpha=1)
+leg = ax.legend(handles, labels, title='Legend', title_fontsize=12, fontsize=10, loc='upper left',
+                frameon=True, framealpha=1)
 
 # add the scale bar to the axis
 scale_bar(ax)
@@ -178,22 +171,22 @@ scale_bar(ax)
 # export figure as map
 myFig.savefig('Natura2000map.png', bbox_inches='tight', dpi=300)
 
-#-------------------------------Selecting Natura 2000 sites with user buffer---------------------------#
+#-----------------------------------Selecting Natura 2000 sites within Search Area-------------------------------------#
 
-sac_in = sac.loc[sac.intersects(userbuffer)] # new variable containing sacs within userbuffer geometry
+sac_in = sac.loc[sac.intersects(userbuffer)] # new gdf containing sacs within userbuffer geometry
 print ('Natura 2000 Sites within Search Area -')
 print ('Number of Special Areas of Conservation: {}' .format(len(sac_in.index)))
-spa_in = spa.loc[spa.intersects(userbuffer)] # new variable containing spas within userbuffer geometry
+spa_in = spa.loc[spa.intersects(userbuffer)] # new gdf containing spas within userbuffer geometry
 print ('Number of Special Protection Areas: {}' .format(len(spa_in.index)))
 
-#-------------------------------Exporting results table to file---------------------------------------#
+#-------------------------------------Exporting result tables to file--------------------------------------------------#
 
 #creating file pathways for excel exports
 sac_expath = 'C:/MSc_Remote_Sensing_&_GIS/EGM722_Programming_for_GIS_and_RS/git/EGM722_Assessment/SAC_within.xlsx'
 spa_expath = 'C:/MSc_Remote_Sensing_&_GIS/EGM722_Programming_for_GIS_and_RS/git/EGM722_Assessment/SPA_within.xlsx'
 
-#export results to excel
-sac_in.to_excel(sac_expath)
-spa_in.to_excel(spa_expath)
+#export results to excel. Not all columns in gdf required.
+sac_in.to_excel(sac_expath, columns=['SITECODE', 'SITE_NAME','COUNTY','HA','VERSION','URL'])
+spa_in.to_excel(spa_expath, columns=['SITECODE', 'SITE_NAME','COUNTY','HA','VERSION','URL'])
 
 print('Results and mapping exported to folder')
