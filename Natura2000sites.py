@@ -11,21 +11,21 @@ import matplotlib.lines as mlines
 import openpyxl
 
 # ---------------------1. Import external shapefiles as GeoPandas Geodataframes----------------------------------------#
-outline = gpd.read_file(os.path.abspath('data_files/Counties___Ungen_2019.shp')) #County Outlines
-sac = gpd.read_file(os.path.abspath('data_files/SAC_ITM_2023_02.shp')) #Special Areas of Conservation
-spa = gpd.read_file(os.path.abspath('data_files/SPA_ITM_2021_10.shp')) #Special Protection Areas
+outline = gpd.read_file(os.path.abspath('data_files/Counties___Ungen_2019.shp'))    #County Outlines
+sac = gpd.read_file(os.path.abspath('data_files/SAC_ITM_2023_02.shp'))  #Special Areas of Conservation
+spa = gpd.read_file(os.path.abspath('data_files/SPA_ITM_2021_10.shp'))  #Special Protection Areas
 
 #---------------------------------2. Check Input CRS Consistency-------------------------------------------------------#
 #sac = sac.to_crs(epsg=32639) #debug
 
-# check EPSG codes of the input data and state if projections are consistent.
-# if inconsistent carryout conversion to user defined EPSG code
+# Check EPSG codes of the input data and state if projections are consistent.
+# If inconsistent a conversion to a user defined EPSG code is carried out.
 if outline.crs == sac.crs == spa.crs:
     print ('All features are projected to projection {}'.format(outline.crs))
 
 else:
     print ('Input data will be reprojected as 1 or more features have inconsistent projections')
-    epsg_code = int((input('Please enter the EPSG code used to reproject input data: '))) #ITM = 2157
+    epsg_code = int((input('Please enter the EPSG code used to reproject input data: ')))
     outline = outline.to_crs(epsg=epsg_code)
     sac = sac.to_crs(epsg=epsg_code)
     spa = spa.to_crs(epsg=epsg_code)
@@ -33,37 +33,37 @@ else:
           .format(outline.crs, sac.crs, spa.crs))
 
 #------------------------------3. User input coordinates and search features-------------------------------------------#
-# user input for x coordinate.
+# User input for x coordinate.
 while True:
     try:
         xin = float(input("Please enter ITM X coordinate (easting) of search point."
        "\nCoordinates must be entered in a number format such as 123456.78"))
     except ValueError:
-        print('Input must be a number') # if user does not enter a number the loop returns and they are prompted again.
+        print('Input must be a number')     # If user does not enter a number the loop continues.
     else:
-        break # loop breaks on input of a number
-# user input for y coordinate
+        break       # The loop breaks on input of a number
+# User input for y coordinate
 while True:
     try:
         yin = float(input("Please enter ITM Y coordinate (easting) of search point."
                           "\nCoordinates must be entered in a number format such as 123456.78"))
     except ValueError:
-        print('Input must be a number')  # if user does not enter a number the loop returns and they are prompted again.
+        print('Input must be a number')     # If user does not enter a number the loop continues.
     else:
-        break  # loop breaks on input of a number
+        break  # Loop breaks on input of a number
 
-userinput = Point(xin, yin) # combine x and y into a point
+userinput = Point(xin, yin)     # combine xin and yin into a point
 
-# user input for search area
+# User input for search area
 while True:
     try:
-        ZoI = float(input('Please enter the search distance (km)')) # ZoI is 'Zone of Influence' ie area within which effects to Natura 2000 site are possible.
+        ZoI = float(input('Please enter the search distance (km)'))  # ZoI is 'Zone of Influence' ie area within which effects to Natura 2000 site are possible.
     except ValueError:
-        print('Input must be a number')  # if user does not enter a number the loop returns and they are prompted again.
+        print('Input must be a number')     # If user does not enter a number the loop continues.
     else:
-        break  # loop breaks on input of a number
-        
-#create buffer area around the search point based on ZoI (converted from km to m). This forms the Search Area
+        break   # The loop breaks on input of a number
+
+#Create a buffer area around the search point based on ZoI (converted from km to m). This forms the Search Area
 userbuffer = userinput.buffer((ZoI * 1000), resolution=50)
 
 #-------------------------------------Fuctions to help mapping output--------------------------------------------------#
@@ -75,16 +75,16 @@ def generate_handles(labels, colors, edge='k', alpha=1):
         handles.append(mpatches.Rectangle((0, 0), 1, 1, facecolor=colors[i % lc], edgecolor=edge, alpha=alpha))
     return handles
 
-# create a scale bar of length 20 km in the lower right corner of the map
-# adapted this question: https://stackoverflow.com/q/32333870
-# answered by SO user Siyh: https://stackoverflow.com/a/35705477
-# code modified further to adjust scalebar size based scale of userbuffer.
+# Create a scale bar of length 20 km in the lower right corner of the map
+# Adapted this question: https://stackoverflow.com/q/32333870
+# Answered by SO user Siyh: https://stackoverflow.com/a/35705477
+# Code modified further to adjust scalebar size based scale of userbuffer.
 def scale_bar(ax, location=(0.92, 0.05)):
     x0, x1, y0, y1 = ax.get_extent()
     sbx = x0 + (x1 - x0) * location[0]
     sby = y0 + (y1 - y0) * location[1]
 
-    if ZoI >= 10:
+    if ZoI >= 10:   #For search area greater or equal to 10km
         ax.plot([sbx, sbx - 20000], [sby, sby], color='k', linewidth=9, transform=ax.projection)
         ax.plot([sbx, sbx - 10000], [sby, sby], color='k', linewidth=6, transform=ax.projection)
         ax.plot([sbx- 10000, sbx - 20000], [sby, sby], color='w', linewidth=6, transform=ax.projection)
@@ -93,7 +93,7 @@ def scale_bar(ax, location=(0.92, 0.05)):
         ax.text(sbx-10000, sby-1000, '10 km', transform=ax.projection, fontsize=8)
         ax.text(sbx-20500, sby-1000, '0 km', transform=ax.projection, fontsize=8)
 
-    elif ZoI >= 5:
+    elif ZoI >= 5:  #For search area greater or equal to 5km
         ax.plot([sbx, sbx - 10000], [sby, sby], color='k', linewidth=9, transform=ax.projection)
         ax.plot([sbx, sbx - 5000], [sby, sby], color='k', linewidth=6, transform=ax.projection)
         ax.plot([sbx - 5000, sbx - 10000], [sby, sby], color='w', linewidth=6, transform=ax.projection)
@@ -102,7 +102,7 @@ def scale_bar(ax, location=(0.92, 0.05)):
         ax.text(sbx - 5000, sby - 500, '5 km', transform=ax.projection, fontsize=8)
         ax.text(sbx - 10250, sby - 500, '0 km', transform=ax.projection, fontsize=8)
 
-    else:
+    else:   #For other search area sizes (i.e. less than 5 km)
         ax.plot([sbx, sbx - 5000], [sby, sby], color='k', linewidth=9, transform=ax.projection)
         ax.plot([sbx, sbx - 2500], [sby, sby], color='k', linewidth=6, transform=ax.projection)
         ax.plot([sbx - 2500, sbx - 5000], [sby, sby], color='w', linewidth=6, transform=ax.projection)
@@ -112,20 +112,20 @@ def scale_bar(ax, location=(0.92, 0.05)):
         ax.text(sbx - 5125, sby - 250, '0 km', transform=ax.projection, fontsize=8)
 
 #-----------------------------------------Creating map output----------------------------------------------------------#
-myFig = plt.figure(figsize=(10, 10))
+myFig = plt.figure(figsize=(10, 10))    # Creates a figure plot of size 10 x 10.
 
-# create a coordinate reference system.
+# Creates a coordinate reference system variable.
 myCRS = ccrs.epsg(2157)  # Irish Transverse Mercator (ITM) is used in RoI.
 # 2157 is the epsg code for ITM so passed to ccrs.epsg()
 
-# create an axis object in the figure, using myCRS where data is plotted.
+# Creates an axis object in the figure, using myCRS where data is plotted.
 ax = plt.axes(projection=myCRS)
 
-# add the outline of RoI using cartopy's ShapelyFeature
+# Adds the outline of RoI using cartopy's ShapelyFeature
 outline_feature = ShapelyFeature(outline['geometry'], myCRS, edgecolor='grey', facecolor='w')
 ax.add_feature(outline_feature)
 
-# using the boundary of the userbuffer, zoom the map to area of interest
+# Using the boundary of the userbuffer, zoom the map to area of interest
 xmin, ymin, xmax, ymax = userbuffer.bounds
 # xmin, xmax, ymin, ymax, coordinates are reordered here and defined. Extents depends on ZoI size
 if ZoI >= 10:
@@ -136,9 +136,9 @@ else:
     ax.set_extent([xmin - 500, xmax + 500, ymin - 500, ymax + 500], crs=myCRS)
 
 # Set the symbologies for each feature
-#Special Areas of Conservation
+# Special Areas of Conservation
 sac_feat = ShapelyFeature(sac['geometry'], myCRS, edgecolor='g', facecolor='g', linewidth=1, alpha= 0.5)
-# first argument is the geometry, second argument is the CRS, edgecolor is the boundary of the feature (green),
+# First argument is the geometry, second argument is the CRS, edgecolor is the boundary of the feature (green),
 # facecolor is the color of the feature (green), linewidth is the boundary size,
 # alpha is the level of transparency (50%).
 # Colorcode based on https://matplotlib.org/2.1.1/gallery/color/named_colors.html
@@ -146,14 +146,14 @@ ax.add_feature(sac_feat)  # add the  feature to the map
 
 #Special Protection Areas
 spa_feat = ShapelyFeature(spa['geometry'], myCRS, edgecolor='b', facecolor='b', linewidth=1, alpha= 0.5)
-ax.add_feature(spa_feat)  # add the feature to the map
+ax.add_feature(spa_feat)    # Add the feature to the map
 
 #Search point
 userpoint_handle = ax.plot(xin, yin, 'o', color='r', ms=6,)
 
 #Search Area
 userbuffer_feat = ShapelyFeature(userbuffer, myCRS, edgecolor='k', facecolor='none', linewidth=1)
-ax.add_feature(userbuffer_feat)  # add the feature to the map
+ax.add_feature(userbuffer_feat)     # Add the feature to the map
 
 # Symbologies for handles in legend
 sac_handle = generate_handles(['SAC'], ['g'])
@@ -167,27 +167,27 @@ labels = ['SAC', 'SPA', 'Search Point', 'Seach Area']
 leg = ax.legend(handles, labels, title='Legend', title_fontsize=12, fontsize=10, loc='upper left',
                 frameon=True, framealpha=1)
 
-# add the scale bar to the axis
+# Add the scale bar to the axis
 scale_bar(ax)
 
-# export figure as map
+# Export figure as map
 myFig.savefig('Natura2000map.png', bbox_inches='tight', dpi=300)
 
 #-----------------------------------Selecting Natura 2000 sites within Search Area-------------------------------------#
 
-sac_in = sac.loc[sac.intersects(userbuffer)] # new gdf containing sacs within userbuffer geometry
+sac_in = sac.loc[sac.intersects(userbuffer)]    # Creates new gdf containing sacs within userbuffer geometry
 print ('Natura 2000 Sites within Search Area -')
 print ('Number of Special Areas of Conservation: {}' .format(len(sac_in.index)))
-spa_in = spa.loc[spa.intersects(userbuffer)] # new gdf containing spas within userbuffer geometry
+spa_in = spa.loc[spa.intersects(userbuffer)]    # Creates new gdf containing spas within userbuffer geometry
 print ('Number of Special Protection Areas: {}' .format(len(spa_in.index)))
 
 #-------------------------------------Exporting result tables to file--------------------------------------------------#
 
-#creating file pathways for excel exports
+# Creating file pathways for excel exports
 sac_expath = 'C:/MSc_Remote_Sensing_&_GIS/EGM722_Programming_for_GIS_and_RS/git/EGM722_Assessment/SAC_within.xlsx'
 spa_expath = 'C:/MSc_Remote_Sensing_&_GIS/EGM722_Programming_for_GIS_and_RS/git/EGM722_Assessment/SPA_within.xlsx'
 
-#export results to excel. Not all columns in gdf required.
+# Exporting results to excel. Required columns specified.
 sac_in.to_excel(sac_expath, columns=['SITECODE', 'SITE_NAME','COUNTY','HA','VERSION','URL'])
 spa_in.to_excel(spa_expath, columns=['SITECODE', 'SITE_NAME','COUNTY','HA','VERSION','URL'])
 
