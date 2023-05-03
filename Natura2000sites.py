@@ -10,16 +10,16 @@ import matplotlib.patches as mpatches
 import matplotlib.lines as mlines
 import openpyxl
 
-# ---------------------Import external shapefiles as GeoPandas Geodataframes-------------------------------------------#
+# ---------------------1. Import external shapefiles as GeoPandas Geodataframes----------------------------------------#
 outline = gpd.read_file(os.path.abspath('data_files/Counties___Ungen_2019.shp')) #County Outlines
 sac = gpd.read_file(os.path.abspath('data_files/SAC_ITM_2023_02.shp')) #Special Areas of Conservation
 spa = gpd.read_file(os.path.abspath('data_files/SPA_ITM_2021_10.shp')) #Special Protection Areas
 
-#---------------------------------Check Input CRS Consistency----------------------------------------------------------#
+#---------------------------------2. Check Input CRS Consistency-------------------------------------------------------#
 #sac = sac.to_crs(epsg=32639) #debug
 
-#Check EPSG codes of the input data and state if projections are consistent.
-#If inconsistent carryout conversion to user defined EPSG code
+# check EPSG codes of the input data and state if projections are consistent.
+# if inconsistent carryout conversion to user defined EPSG code
 if outline.crs == sac.crs == spa.crs:
     print ('All features are projected to projection {}'.format(outline.crs))
 
@@ -32,16 +32,16 @@ else:
     print('Outline projection - {}\nSAC projection - {}\nSPA projection - {}'
           .format(outline.crs, sac.crs, spa.crs))
 
-#------------------------------User input coordinates and search features----------------------------------------------#
-#User input for x coordinate.
+#------------------------------3. User input coordinates and search features-------------------------------------------#
+# user input for x coordinate.
 while True:
     try:
         xin = float(input("Please enter ITM X coordinate (easting) of search point."
        "\nCoordinates must be entered in a number format such as 123456.78"))
     except ValueError:
-        print('Input must be a number') #If user does not enter a number the loop returns and they are prompted again.
+        print('Input must be a number') # if user does not enter a number the loop returns and they are prompted again.
     else:
-        break #loop breaks on input of a number
+        break # loop breaks on input of a number
 # user input for y coordinate
 while True:
     try:
@@ -54,7 +54,7 @@ while True:
 
 userinput = Point(xin, yin) # combine x and y into a point
 
-#user input for search area
+# user input for search area
 while True:
     try:
         ZoI = float(input('Please enter the search distance (km)')) # ZoI is 'Zone of Influence' ie area within which effects to Natura 2000 site are possible.
@@ -62,6 +62,7 @@ while True:
         print('Input must be a number')  # if user does not enter a number the loop returns and they are prompted again.
     else:
         break  # loop breaks on input of a number
+        
 #create buffer area around the search point based on ZoI (converted from km to m). This forms the Search Area
 userbuffer = userinput.buffer((ZoI * 1000), resolution=50)
 
