@@ -69,6 +69,18 @@ userbuffer = userinput.buffer((ZoI * 1000), resolution=50)
 #-------------------------------------Fuctions to help mapping output--------------------------------------------------#
 # Function to generate matplotlib handles to create legend tab for each input feature.
 def generate_handles(labels, colors, edge='k', alpha=1):
+    '''Creates matplotlib handles to be used to generate a legend in the Mapping output.
+
+    :param labels: list of labels defined by user (str)
+    :param colors: color code of body (str)
+    :param edge: color code of boundary (str)
+    :param alpha: level of transparency (0.0 = fully transparent, 1.0 = fully opaque) (float)
+    :return:  legend tab for each input feature
+
+    Note that the handle symbology and ShapelyFeature symbology are separate. If ShapelyFeatures symbology are changed
+    handles should be updated to reflect the change.
+    '''
+
     lc = len(colors)  # get the length of the color list
     handles = []
     for i in range(len(labels)):
@@ -80,6 +92,14 @@ def generate_handles(labels, colors, edge='k', alpha=1):
 # Answered by SO user Siyh: https://stackoverflow.com/a/35705477
 # Code modified further to adjust scalebar size based scale of userbuffer.
 def scale_bar(ax, location=(0.92, 0.05)):
+    ''' Creates a scale bar of an adjustable length based on the search area distance defined by user.
+        Scale bar placed in the lower right hand corner of the map
+
+    :param ax: Axis object where to place the scale bar
+    :param location: Position within the axis object to place the scale bar
+    :return: Adjustable scale bar based on user search area. Alternating black and white distance indicators.
+            Text below bar. Located in lower right hand corner of map.
+    '''
     x0, x1, y0, y1 = ax.get_extent()
     sbx = x0 + (x1 - x0) * location[0]
     sby = y0 + (y1 - y0) * location[1]
