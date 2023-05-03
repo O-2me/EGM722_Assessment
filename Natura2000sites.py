@@ -33,36 +33,37 @@ else:
           .format(outline.crs, sac.crs, spa.crs))
 
 #------------------------------User input coordinates and search features----------------------------------------------#
-print ("Please enter ITM X coordinate (easting) of search point."
-       "\nCoordinates must be entered in a number format such as 123456.78")
-xin = float(input()) #commented out for testing
-#    if xin != float or int:
- #       print('Coordinates must be entered in a number format such as 123456.78')
-  #      continue
-   # else:
-    #    break
+#User input for x coordinate.
+while True:
+    try:
+        xin = float(input("Please enter ITM X coordinate (easting) of search point."
+       "\nCoordinates must be entered in a number format such as 123456.78"))
+    except ValueError:
+        print('Input must be a number') #If user does not enter a number the loop returns and they are prompted again.
+    else:
+        break #loop breaks on input of a number
+# user input for y coordinate
+while True:
+    try:
+        yin = float(input("Please enter ITM Y coordinate (easting) of search point."
+                          "\nCoordinates must be entered in a number format such as 123456.78"))
+    except ValueError:
+        print('Input must be a number')  # if user does not enter a number the loop returns and they are prompted again.
+    else:
+        break  # loop breaks on input of a number
 
-#while True:
-print ("Please enter ITM Y coordinate (northing) of search point."
-       "\nCoordinates must be entered in a number format such as 123456.78")
-yin = float(input()) #commented out for testing float(input())
-#    if yin != float or int:
-#        print('Coordinates must be entered in a number format such as 123456.78')
-#        continue
-#    else:
-#        break
-#xin = float(xin) #transform input str to float for plotting
-#while xin != float or int:
-    #print ('Coordinates must be entered in a number format such as 123456.78')
+userinput = Point(xin, yin) # combine x and y into a point
 
-#yin = input('Enter ITM Y coordinate (northing) of search point;')
-#while yin != float or int:
-    #print ('Coordinates must be entered in a number format such as 123456.78')
-userinput = Point(xin, yin)
-
-print ('Please enter the search distance (km)')
-ZoI = float(input()) # commented out for testing #ZoI is 'Zone of Influence' ie area within whcih effects to Natura 2000 site are possible.
-userbuffer = userinput.buffer((ZoI * 1000), resolution=50) # Buffer around the search point, based on ZoI. Will form Search Area
+#user input for search area
+while True:
+    try:
+        ZoI = float(input('Please enter the search distance (km)')) # ZoI is 'Zone of Influence' ie area within which effects to Natura 2000 site are possible.
+    except ValueError:
+        print('Input must be a number')  # if user does not enter a number the loop returns and they are prompted again.
+    else:
+        break  # loop breaks on input of a number
+#create buffer area around the search point based on ZoI (converted from km to m). This forms the Search Area
+userbuffer = userinput.buffer((ZoI * 1000), resolution=50)
 
 #-------------------------------------Fuctions to help mapping output--------------------------------------------------#
 # Function to generate matplotlib handles to create legend tab for each input feature.
