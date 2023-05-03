@@ -11,9 +11,9 @@ import matplotlib.lines as mlines
 import openpyxl
 
 # ---------------------1. Import external shapefiles as GeoPandas Geodataframes----------------------------------------#
-outline = gpd.read_file(os.path.abspath('data_files/Counties___Ungen_2019.shp'))    #County Outlines
-sac = gpd.read_file(os.path.abspath('data_files/SAC_ITM_2023_02.shp'))  #Special Areas of Conservation
-spa = gpd.read_file(os.path.abspath('data_files/SPA_ITM_2021_10.shp'))  #Special Protection Areas
+outline = gpd.read_file(os.path.abspath('data_files/Counties___Ungen_2019.shp'))    # County Outlines
+sac = gpd.read_file(os.path.abspath('data_files/SAC_ITM_2023_02.shp'))  # Special Areas of Conservation
+spa = gpd.read_file(os.path.abspath('data_files/SPA_ITM_2021_10.shp'))  # Special Protection Areas
 
 #---------------------------------2. Check Input CRS Consistency-------------------------------------------------------#
 #sac = sac.to_crs(epsg=32639) #debug
@@ -71,10 +71,10 @@ userbuffer = userinput.buffer((ZoI * 1000), resolution=50)
 def generate_handles(labels, colors, edge='k', alpha=1):
     '''Creates matplotlib handles to be used to generate a legend in the Mapping output.
 
-    :param labels: list of labels defined by user (str)
-    :param colors: color code of body (str)
-    :param edge: color code of boundary (str)
-    :param alpha: level of transparency (0.0 = fully transparent, 1.0 = fully opaque) (float)
+    :param labels: list of labels defined by user (type: str)
+    :param colors: color code of body (type: str)
+    :param edge: color code of boundary (type: str)
+    :param alpha: level of transparency (0.0 = fully transparent, 1.0 = fully opaque) (type: float)
     :return:  legend tab for each input feature
 
     Note that the handle symbology and ShapelyFeature symbology are separate. If ShapelyFeatures symbology are changed
@@ -95,8 +95,8 @@ def scale_bar(ax, location=(0.92, 0.05)):
     ''' Creates a scale bar of an adjustable length based on the search area distance defined by user.
         Scale bar placed in the lower right hand corner of the map
 
-    :param ax: Axis object where to place the scale bar
-    :param location: Position within the axis object to place the scale bar
+    :param ax: Axes object where to place the scale bar (type; GeoAxes)
+    :param location: Position within the axis object to place the scale bar (type: float)
     :return: Adjustable scale bar based on user search area. Alternating black and white distance indicators.
             Text below bar. Located in lower right hand corner of map.
     '''
