@@ -3,6 +3,7 @@ import os
 import pandas as pd
 import geopandas as gpd
 import matplotlib.pyplot as plt
+import pyproj.exceptions
 from cartopy.feature import ShapelyFeature
 import cartopy.crs as ccrs
 from shapely.geometry import Point, Polygon, LineString
@@ -15,7 +16,7 @@ outline = gpd.read_file(os.path.abspath('data_files/Counties___Ungen_2019.shp'))
 sac = gpd.read_file(os.path.abspath('data_files/SAC_ITM_2023_02.shp'))  # Special Areas of Conservation
 spa = gpd.read_file(os.path.abspath('data_files/SPA_ITM_2021_10.shp'))  # Special Protection Areas
 
-#---------------------------------2. Check Input CRS Consistency-------------------------------------------------------#
+#-------------------------------------------2. Input CRS Check---------------------------------------------------------#
 #sac = sac.to_crs(epsg=32639) #debug
 
 # Check EPSG codes of the input data and state if projections are consistent.
@@ -25,7 +26,14 @@ if outline.crs == sac.crs == spa.crs:
 
 else:
     print ('Input data will be reprojected as 1 or more features have inconsistent projections')
-    epsg_code = int((input('Please enter the EPSG code used to reproject input data: ')))
+    while True:
+        try:
+            epsg_code = int((input('Please enter the EPSG code used to reproject input data: ')))
+        except ValueError:
+            print('Input is not an EPSG Code')
+        else:
+            break
+
     outline = outline.to_crs(epsg=epsg_code)
     sac = sac.to_crs(epsg=epsg_code)
     spa = spa.to_crs(epsg=epsg_code)
@@ -66,7 +74,7 @@ while True:
 #Create a buffer area around the search point based on ZoI (converted from km to m). This forms the Search Area
 userbuffer = userinput.buffer((ZoI * 1000), resolution=50)
 
-#-------------------------------------Fuctions to help mapping output--------------------------------------------------#
+#-------------------------------------4. Functions for map output features----------------------------------------------#
 # Function to generate matplotlib handles to create legend tab for each input feature.
 def generate_handles(labels, colors, edge='k', alpha=1):
     '''Creates matplotlib handles to be used to generate a legend in the Mapping output.
@@ -131,7 +139,7 @@ def scale_bar(ax, location=(0.92, 0.05)):
         ax.text(sbx - 2500, sby - 250, '2.5 km', transform=ax.projection, fontsize=8)
         ax.text(sbx - 5125, sby - 250, '0 km', transform=ax.projection, fontsize=8)
 
-#-----------------------------------------Creating map output----------------------------------------------------------#
+#---------------------------------------5. Creating map output---------------------------------------------------------#
 myFig = plt.figure(figsize=(10, 10))    # Creates a figure plot of size 10 x 10.
 
 # Creates a coordinate reference system variable.
@@ -193,7 +201,7 @@ scale_bar(ax)
 # Export figure as map
 myFig.savefig('Natura2000map.png', bbox_inches='tight', dpi=300)
 
-#-----------------------------------Selecting Natura 2000 sites within Search Area-------------------------------------#
+#-----------------------------------6. Selecting Natura 2000 sites within Search Area----------------------------------#
 
 sac_in = sac.loc[sac.intersects(userbuffer)]    # Creates new gdf containing sacs within userbuffer geometry
 print ('Natura 2000 Sites within Search Area -')
@@ -201,11 +209,11 @@ print ('Number of Special Areas of Conservation: {}' .format(len(sac_in.index)))
 spa_in = spa.loc[spa.intersects(userbuffer)]    # Creates new gdf containing spas within userbuffer geometry
 print ('Number of Special Protection Areas: {}' .format(len(spa_in.index)))
 
-#-------------------------------------Exporting result tables to file--------------------------------------------------#
+#----------------------------------7. Exporting result tables to folder------------------------------------------------#
 
-# Creating file pathways for excel exports
-sac_expath = 'C:/MSc_Remote_Sensing_&_GIS/EGM722_Programming_for_GIS_and_RS/git/EGM722_Assessment/SAC_within.xlsx'
-spa_expath = 'C:/MSc_Remote_Sensing_&_GIS/EGM722_Programming_for_GIS_and_RS/git/EGM722_Assessment/SPA_within.xlsx'
+# Creating file pathways for excel exports. These
+sac_expath = 'SAC_within.xlsx'
+spa_expath = 'SPA_within.xlsx'
 
 # Exporting results to excel. Required columns specified.
 sac_in.to_excel(sac_expath, columns=['SITECODE', 'SITE_NAME','COUNTY','HA','VERSION','URL'])
