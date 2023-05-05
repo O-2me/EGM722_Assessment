@@ -1,15 +1,12 @@
 # import required modules
 import os
-import pandas as pd
 import geopandas as gpd
 import matplotlib.pyplot as plt
-import pyproj.exceptions
 from cartopy.feature import ShapelyFeature
 import cartopy.crs as ccrs
 from shapely.geometry import Point, Polygon, LineString
 import matplotlib.patches as mpatches
-import matplotlib.lines as mlines
-import openpyxl
+
 
 # ---------------------1. Import external shapefiles as GeoPandas Geodataframes----------------------------------------#
 outline = gpd.read_file(os.path.abspath('data_files/Counties___Ungen_2019.shp'))    # County Outlines
@@ -22,10 +19,10 @@ spa = gpd.read_file(os.path.abspath('data_files/SPA_ITM_2021_10.shp'))  # Specia
 # Check EPSG codes of the input data and state if projections are consistent.
 # If inconsistent a conversion to a user defined EPSG code is carried out.
 if outline.crs == sac.crs == spa.crs:
-    print ('All features are projected to projection {}'.format(outline.crs))
+    print('All features are projected to projection {}'.format(outline.crs))
 
 else:
-    print ('Input data will be reprojected as 1 or more features have inconsistent projections')
+    print('Input data will be reprojected as 1 or more features have inconsistent projections')
     while True:
         try:
             epsg_code = int((input('Please enter the EPSG code used to reproject input data: ')))
@@ -45,7 +42,7 @@ else:
 while True:
     try:
         xin = float(input("Please enter ITM X coordinate (easting) of search point."
-       "\nCoordinates must be entered in a number format such as 123456.78"))
+                          "\nCoordinates must be entered in a number format such as 123456.78"))
     except ValueError:
         print('Input must be a number')     # If user does not enter a number the loop continues.
     else:
@@ -65,7 +62,7 @@ userinput = Point(xin, yin)     # combine xin and yin into a point
 # User input for search area
 while True:
     try:
-        ZoI = float(input('Please enter the search distance (km)'))  # ZoI is 'Zone of Influence' ie area within which effects to Natura 2000 site are possible.
+        ZoI = float(input('Please enter the search distance (km)'))  # ZoI is 'Zone of Influence'
     except ValueError:
         print('Input must be a number')     # If user does not enter a number the loop continues.
     else:
@@ -74,10 +71,10 @@ while True:
 #Create a buffer area around the search point based on ZoI (converted from km to m). This forms the Search Area
 userbuffer = userinput.buffer((ZoI * 1000), resolution=50)
 
-#-------------------------------------4. Functions for map output features----------------------------------------------#
+#-------------------------------------4. Functions for map output features---------------------------------------------#
 # Function to generate matplotlib handles to create legend tab for each input feature.
 def generate_handles(labels, colors, edge='k', alpha=1):
-    '''Creates matplotlib handles to be used to generate a legend in the Mapping output.
+    """Creates matplotlib handles to be used to generate a legend in the Mapping output.
 
     :param labels: list of labels defined by user (type: str)
     :param colors: color code of body (type: str)
@@ -87,7 +84,7 @@ def generate_handles(labels, colors, edge='k', alpha=1):
 
     Note that the handle symbology and ShapelyFeature symbology are separate. If ShapelyFeatures symbology are changed
     handles should be updated to reflect the change.
-    '''
+    """
 
     lc = len(colors)  # get the length of the color list
     handles = []
@@ -100,14 +97,14 @@ def generate_handles(labels, colors, edge='k', alpha=1):
 # Answered by SO user Siyh: https://stackoverflow.com/a/35705477
 # Code modified further to adjust scalebar size based scale of userbuffer.
 def scale_bar(ax, location=(0.92, 0.05)):
-    ''' Creates a scale bar of an adjustable length based on the search area distance defined by user.
+    """ Creates a scale bar of an adjustable length based on the search area distance defined by user.
         Scale bar placed in the lower right hand corner of the map
 
     :param ax: Axes object where to place the scale bar (type; GeoAxes)
     :param location: Position within the axis object to place the scale bar (type: float)
     :return: Adjustable scale bar based on user search area. Alternating black and white distance indicators.
             Text below bar. Located in lower right hand corner of map.
-    '''
+    """
     x0, x1, y0, y1 = ax.get_extent()
     sbx = x0 + (x1 - x0) * location[0]
     sby = y0 + (y1 - y0) * location[1]
@@ -115,7 +112,7 @@ def scale_bar(ax, location=(0.92, 0.05)):
     if ZoI >= 10:   #For search area greater or equal to 10km
         ax.plot([sbx, sbx - 20000], [sby, sby], color='k', linewidth=9, transform=ax.projection)
         ax.plot([sbx, sbx - 10000], [sby, sby], color='k', linewidth=6, transform=ax.projection)
-        ax.plot([sbx- 10000, sbx - 20000], [sby, sby], color='w', linewidth=6, transform=ax.projection)
+        ax.plot([sbx - 10000, sbx - 20000], [sby, sby], color='w', linewidth=6, transform=ax.projection)
 
         ax.text(sbx, sby-1000, '20 km', transform=ax.projection, fontsize=8)
         ax.text(sbx-10000, sby-1000, '10 km', transform=ax.projection, fontsize=8)
@@ -165,7 +162,7 @@ else:
 
 # Set the symbologies for each feature
 # Special Areas of Conservation
-sac_feat = ShapelyFeature(sac['geometry'], myCRS, edgecolor='g', facecolor='g', linewidth=1, alpha= 0.5)
+sac_feat = ShapelyFeature(sac['geometry'], myCRS, edgecolor='g', facecolor='g', linewidth=1, alpha=0.5)
 # First argument is the geometry, second argument is the CRS, edgecolor is the boundary of the feature (green),
 # facecolor is the color of the feature (green), linewidth is the boundary size,
 # alpha is the level of transparency (50%).
@@ -173,7 +170,7 @@ sac_feat = ShapelyFeature(sac['geometry'], myCRS, edgecolor='g', facecolor='g', 
 ax.add_feature(sac_feat)  # add the  feature to the map
 
 #Special Protection Areas
-spa_feat = ShapelyFeature(spa['geometry'], myCRS, edgecolor='b', facecolor='b', linewidth=1, alpha= 0.5)
+spa_feat = ShapelyFeature(spa['geometry'], myCRS, edgecolor='b', facecolor='b', linewidth=1, alpha=0.5)
 ax.add_feature(spa_feat)    # Add the feature to the map
 
 #Search point
@@ -204,10 +201,10 @@ myFig.savefig('Natura2000map.png', bbox_inches='tight', dpi=300)
 #-----------------------------------6. Selecting Natura 2000 sites within Search Area----------------------------------#
 
 sac_in = sac.loc[sac.intersects(userbuffer)]    # Creates new gdf containing sacs within userbuffer geometry
-print ('Natura 2000 Sites within Search Area -')
-print ('Number of Special Areas of Conservation: {}' .format(len(sac_in.index)))
+print('Natura 2000 Sites within Search Area -')
+print('Number of Special Areas of Conservation: {}' .format(len(sac_in.index)))
 spa_in = spa.loc[spa.intersects(userbuffer)]    # Creates new gdf containing spas within userbuffer geometry
-print ('Number of Special Protection Areas: {}' .format(len(spa_in.index)))
+print('Number of Special Protection Areas: {}' .format(len(spa_in.index)))
 
 #----------------------------------7. Exporting result tables to folder------------------------------------------------#
 
@@ -216,7 +213,7 @@ sac_expath = 'SAC_within.xlsx'
 spa_expath = 'SPA_within.xlsx'
 
 # Exporting results to excel. Required columns specified.
-sac_in.to_excel(sac_expath, columns=['SITECODE', 'SITE_NAME','COUNTY','HA','VERSION','URL'])
-spa_in.to_excel(spa_expath, columns=['SITECODE', 'SITE_NAME','COUNTY','HA','VERSION','URL'])
+sac_in.to_excel(sac_expath, columns=['SITECODE', 'SITE_NAME', 'COUNTY', 'HA', 'VERSION', 'URL'])
+spa_in.to_excel(spa_expath, columns=['SITECODE', 'SITE_NAME', 'COUNTY', 'HA', 'VERSION', 'URL'])
 
 print('Results and mapping exported to folder')
