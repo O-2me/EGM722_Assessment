@@ -14,7 +14,6 @@ sac = gpd.read_file(os.path.abspath('data_files/SAC_ITM_2023_02.shp'))  # Specia
 spa = gpd.read_file(os.path.abspath('data_files/SPA_ITM_2021_10.shp'))  # Special Protection Areas
 
 #-------------------------------------------2. Input CRS Check---------------------------------------------------------#
-#sac = sac.to_crs(epsg=32639) #debug
 
 # Check EPSG codes of the input data and state if projections are consistent.
 # If inconsistent a conversion to a user defined EPSG code is carried out.
@@ -201,7 +200,7 @@ myFig.savefig('Natura2000map.png', bbox_inches='tight', dpi=300)
 #-----------------------------------6. Selecting Natura 2000 sites within Search Area----------------------------------#
 
 sac_in = sac.loc[sac.intersects(userbuffer)]    # Creates new gdf containing sacs within userbuffer geometry
-print('Natura 2000 Sites within Search Area -')
+print('Natura 2000 Sites within Search Area:')
 print('Number of Special Areas of Conservation: {}' .format(len(sac_in.index)))
 spa_in = spa.loc[spa.intersects(userbuffer)]    # Creates new gdf containing spas within userbuffer geometry
 print('Number of Special Protection Areas: {}' .format(len(spa_in.index)))
